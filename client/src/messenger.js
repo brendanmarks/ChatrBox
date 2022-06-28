@@ -66,8 +66,8 @@ function Messenger(props) {
         >
           {users.map((user,idx) => {
             return <MenuItem
-                    value={user.id}
-                    key={user.id}
+                    value={user.username}
+                    key={user.username}
                     >
                     {user.username}
                     </MenuItem>  

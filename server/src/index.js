@@ -1,34 +1,67 @@
-const { ApolloServer, gql } = require('apollo-server-express');
+const { ApolloServer, gql, AuthenticationError } = require('apollo-server-express');
 const express               = require('express');
 require('./config');
 const { User } = require('./models');
+const bcrypt = require('bcrypt');
+const saltRounds = 10;
 
 const typeDefs = gql`
+    scalar Date
+
+    type Message {
+        content: String
+        datetime: Date
+        sender: ID
+    }
+    type Conversation {
+        members: [String]
+        messages: [ID]
+    }
     type User {
-        id: ID!
         username: String
         email: String
+        password: String
+        conversations: [ID]
     }
     type Query {
         getUsers: [User]
+        login(username: String!, password: String!): String
     }
     type Mutation {
-        addUser(username: String!, email: String!): User
+        addUser(username: String!, email: String!, password: String!): User
     }
 `;
 
 const resolvers = {
     Query: {
         getUsers: async () => {
-            console.log("getting users");
             return await User.find({}).exec();
+        },
+        login: async (_, args) => {
+            try {
+                const user = await User.find({username: args.username}).exec();
+                if (user.length < 1) {
+                    throw new AuthenticationError("Failed to Authenticate");
+                }
+                const valid = await bcrypt.compare(args.password, user[0].password);
+                if (valid != true) {
+                    throw new AuthenticationError("Failed to Authenticate");
+                }
+                return "Success";
+            } catch(e) {
+                console.log(e);
+                return e.message;
+            }
         }
     },
     Mutation: {
         addUser: async (_, args) => {
             try {
-                let response = await User.create(args);
-                return response;
+                let response = null;
+                return bcrypt.hash(args.password, saltRounds, async function(err, hash) {
+                    args['password'] = hash; 
+                    return response = await User.create(args);
+                });
             } catch(e) {
                 return e.message;
             }
