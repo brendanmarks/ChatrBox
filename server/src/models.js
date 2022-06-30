@@ -4,14 +4,16 @@ const { Schema } = mongoose;
 const messageSchema = new Schema({
   content: String,
   datetime: Date,
-  sender: Schema.Types.ObjectId
+  sender: String,
+  readBy: [String]
 })
 
 const Message = mongoose.model('message', messageSchema);
 
 
 const conversationSchema = new Schema({
-  messages: [Schema.Types.ObjectId]
+  members: [String],
+  messages: [messageSchema]
 })
 
 const Conversation = mongoose.model('conversation', conversationSchema); 

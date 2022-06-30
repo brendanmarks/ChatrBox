@@ -9,10 +9,13 @@ function Login(props) {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [tryLogin] = useLazyQuery(LOGIN, {fetchPolicy: 'no-cache', onCompleted: data => {
+        console.log("login res");
         console.log(data);
-        setAuthenticated(true);
-        localStorage.setItem("user", username);
-        localStorage.setItem('isAuthenticated', 'true');
+        if (data.login === "Success") {
+            setAuthenticated(true);
+            localStorage.setItem("user", username);
+            localStorage.setItem('isAuthenticated', 'true');
+        }
     }});
 
     return (
